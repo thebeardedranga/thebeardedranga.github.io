@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ranga Digital | Unity Asset Store</title>
@@ -437,12 +438,36 @@ public class RpgItem : ScriptableObject
     </script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var rawText = document.getElementById('raw-docs').textContent;
-        var htmlContent = marked.parse(rawText);
-        document.getElementById('docs-content').innerHTML = htmlContent;
-    });
-</script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var rawContainer = document.getElementById('raw-docs');
+            var targetContainer = document.getElementById('docs-content');
+            
+            if (!rawContainer || !targetContainer) return;
+
+            // 1. Get text and split into lines
+            var lines = rawContainer.textContent.split('\n');
+
+            // 2. Remove empty leading/trailing lines (caused by HTML formatting)
+            while (lines.length > 0 && lines[0].trim() === '') lines.shift();
+            while (lines.length > 0 && lines[lines.length - 1].trim() === '') lines.pop();
+
+            // 3. Detect common indentation from the first line
+            var indentMatch = lines.length > 0 ? lines[0].match(/^\s+/) : null;
+            var indent = indentMatch ? indentMatch[0] : '';
+
+            // 4. Strip that indentation from every line (Fixes the "Code Block" layout issue)
+            var cleanText = lines.map(function(line) {
+                return line.startsWith(indent) ? line.substring(indent.length) : line;
+            }).join('\n');
+
+            // 5. Render
+            if (window.marked) {
+                targetContainer.innerHTML = marked.parse(cleanText);
+            } else {
+                targetContainer.innerHTML = "<p style='color:red; padding:20px;'>Error: Marked.js library not loaded. Check internet connection or <head> tags.</p>";
+            }
+        });
+    </script>
 
 </body>
 </html>
